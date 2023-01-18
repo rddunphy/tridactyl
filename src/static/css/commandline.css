@@ -259,7 +259,8 @@ a.url:hover {
     text-overflow: ellipsis;
 }
 
-.HelpCompletionOption td.name {
+.HelpCompletionOption td.name,
+.SanitiseCompletionOption td.name {
     width: 25%;
 }
 

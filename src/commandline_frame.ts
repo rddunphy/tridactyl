@@ -32,6 +32,7 @@ import { HelpCompletionSource } from "@src/completions/Help"
 import { HistoryCompletionSource } from "@src/completions/History"
 import { PreferenceCompletionSource } from "@src/completions/Preferences"
 import { RssCompletionSource } from "@src/completions/Rss"
+import { SanitiseCompletionSource } from "@src/completions/Sanitise"
 import { SessionsCompletionSource } from "@src/completions/Sessions"
 import { SettingsCompletionSource } from "@src/completions/Settings"
 import { BufferCompletionSource } from "@src/completions/Tab"
@@ -131,6 +132,7 @@ export function enableCompletions() {
             HistoryCompletionSource,
             PreferenceCompletionSource,
             RssCompletionSource,
+            SanitiseCompletionSource,
             SessionsCompletionSource,
             SettingsCompletionSource,
             TabGroupCompletionSource,
