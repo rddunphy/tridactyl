@@ -277,7 +277,8 @@ a.url:hover {
     width: auto;
 }
 
-.HelpCompletionOption td.name {
+.HelpCompletionOption td.name,
+.SanitiseCompletionOption td.name {
     width: 25%;
 }
 
