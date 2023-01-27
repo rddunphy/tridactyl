@@ -2,7 +2,8 @@ import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Binding from "@src/lib/binding"
 
-class BindingsCompletionOption extends Completions.CompletionOptionHTML
+class BindingsCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -11,6 +12,7 @@ class BindingsCompletionOption extends Completions.CompletionOptionHTML
         binding: { name: string; value: string; mode: string },
     ) {
         super()
+        this.fuseKeys.push(binding.name, binding.value)
         this.html = html`<tr class="BindingsCompletionOption option">
             <td class="name">${binding.name}</td>
             <td class="content">${binding.value}</td>
@@ -126,29 +128,15 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
         }
 
         query = args.join(" ").toLowerCase()
-        this.options = Object.keys(bindings)
-            .filter(x => x.toLowerCase().startsWith(query))
-            .sort()
-            .map(
-                keystr =>
-                    new BindingsCompletionOption(
-                        options + keystr,
-                        {
-                            name: keystr,
-                            value: JSON.stringify(bindings[keystr]),
-                            mode: `${configName} (${modeName})`,
-                        },
-                    ),
-            )
+        this.options = Object.keys(bindings).map(
+            keystr =>
+                new BindingsCompletionOption(options + keystr, {
+                    name: keystr,
+                    value: JSON.stringify(bindings[keystr]),
+                    mode: `${configName} (${modeName})`,
+                }),
+        )
 
         return this.updateChain()
-    }
-
-    updateChain() {
-        // Options are pre-trimmed to the right length.
-        this.options.forEach(option => (option.state = "normal"))
-
-        // Call concrete class
-        return this.updateDisplay()
     }
 }
