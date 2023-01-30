@@ -415,8 +415,8 @@ interface Hintables {
 export function hintElements(elements: Element[], option = {}) {
     const hintable = toHintablesArray(Array.from(elements))
     const rapid = option["rapid"] ?? false
-    const callback = typeof option["callback"] === "function" ?
-        option["callback"] : x => x
+    const callback =
+        typeof option["callback"] === "function" ? option["callback"] : x => x
     if (!rapid) {
         return new Promise((resolve, reject) => {
             hintPage(hintable, x => x, resolve, reject, rapid)
@@ -431,7 +431,7 @@ export function hintElements(elements: Element[], option = {}) {
         const key = Symbol("select-result")
         const hintCallback = element => {
             callback(element)
-            onSelect.resolve({[key]: element})
+            onSelect.resolve({ [key]: element })
             onSelect = deferCreate()
         }
         const wrap = async function* () {
@@ -443,8 +443,13 @@ export function hintElements(elements: Element[], option = {}) {
             }
         }
         const result = wrap()
-        hintPage(hintable, hintCallback,
-            endDefer.resolve, endDefer.reject, rapid)
+        hintPage(
+            hintable,
+            hintCallback,
+            endDefer.resolve,
+            endDefer.reject,
+            rapid,
+        )
         return result
     }
     function deferCreate() {
@@ -746,23 +751,69 @@ class Hint {
     // These styles would be better with pseudo selectors. Can we do custom ones?
     // If not, do a state machine.
     set hidden(hide: boolean) {
+        const highlightmode = config.get("hintelementhighlighting")
         this.flag.hidden = hide
         if (hide) {
             this.focused = false
-            this.target.classList.remove("TridactylHintElem")
+            if (highlightmode === "overlay") {
+                this.target.classList.remove("TridactylHintElemOverlay")
+            } else if (highlightmode === "outline") {
+                this.target.classList.remove("TridactylHintElemOutline")
+            } else if (highlightmode === "background") {
+                this.target.classList.remove("TridactylHintElem")
+            }
         } else {
-            this.target.classList.add("TridactylHintElem")
+            if (highlightmode === "overlay") {
+                this.addTextNodeWrappers()
+                this.target.classList.add("TridactylHintElemOverlay")
+            } else if (highlightmode === "outline") {
+                this.target.classList.add("TridactylHintElemOutline")
+            } else if (highlightmode === "background") {
+                this.target.classList.add("TridactylHintElem")
+            }
         }
     }
 
     set focused(focus: boolean) {
+        const highlightmode = config.get("hintelementhighlighting")
         if (focus) {
-            this.target.classList.add("TridactylHintActive")
-            this.target.classList.remove("TridactylHintElem")
+            if (highlightmode === "overlay") {
+                this.addTextNodeWrappers()
+                this.target.classList.add("TridactylHintActiveOverlay")
+                this.target.classList.remove("TridactylHintElemOverlay")
+            } else if (highlightmode === "outline") {
+                this.target.classList.add("TridactylHintActiveOutline")
+                this.target.classList.remove("TridactylHintElemOutline")
+            } else if (highlightmode === "background") {
+                this.target.classList.add("TridactylHintActive")
+                this.target.classList.remove("TridactylHintElem")
+            }
         } else {
-            this.target.classList.add("TridactylHintElem")
-            this.target.classList.remove("TridactylHintActive")
+            if (highlightmode === "overlay") {
+                this.addTextNodeWrappers()
+                this.target.classList.add("TridactylHintElemOverlay")
+                this.target.classList.remove("TridactylHintActiveOverlay")
+            } else if (highlightmode === "outline") {
+                this.target.classList.add("TridactylHintElemOutline")
+                this.target.classList.remove("TridactylHintActiveOutline")
+            } else if (highlightmode === "background") {
+                this.target.classList.add("TridactylHintElem")
+                this.target.classList.remove("TridactylHintActive")
+            }
         }
+    }
+
+    addTextNodeWrappers() {
+        // Text nodes can't be selected using >* CSS selector, so to make them
+        // appear above the overlay, we need to wrap them in spans.
+        const textNodes = Array.from(this.target.childNodes).filter(
+            node => node.nodeType === 3 && node.textContent.trim().length > 0,
+        )
+        textNodes.forEach(node => {
+            const span = document.createElement("span")
+            node.after(span)
+            span.appendChild(node)
+        })
     }
 
     select() {

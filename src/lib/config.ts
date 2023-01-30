@@ -834,6 +834,17 @@ export class default_config {
     hintautoselect: "true" | "false" = "true"
 
     /**
+     * Method for highlighting hint elements.
+     *
+     * - `none`: Only show marker with hint characters
+     * - `outline`: Show coloured outline around the element
+     * - `background`: Change background colour of the element
+     * - `overlay`: (Experimental) Add an overlay element with a background colour. This should work better with themes that use transparent background colours, but may break on some websites
+     */
+    hintelementhighlighting: "none" | "outline" | "background" | "overlay" =
+        "background"
+
+    /**
      * Controls whether the page can focus elements for you via js
      *
      * NB: will break fancy editors such as CodeMirror on Jupyter. Simply use `seturl` to whitelist pages you need it on.
