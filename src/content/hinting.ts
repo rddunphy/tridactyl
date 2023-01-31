@@ -788,6 +788,7 @@ class Hint {
                 this.target.classList.add("TridactylHintActive")
                 this.target.classList.remove("TridactylHintElem")
             }
+            this.flag.classList.add("TridactylHintActive")
         } else {
             if (highlightmode === "overlay") {
                 this.addTextNodeWrappers()
@@ -800,6 +801,7 @@ class Hint {
                 this.target.classList.add("TridactylHintElem")
                 this.target.classList.remove("TridactylHintActive")
             }
+            this.flag.classList.remove("TridactylHintActive")
         }
     }
 

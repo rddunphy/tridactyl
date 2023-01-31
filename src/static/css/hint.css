@@ -16,6 +16,12 @@ span.TridactylHint {
     z-index: 2147483646 !important;
 }
 
+span.TridactylHintActive {
+    color: var(--tridactyl-hintspan-active-fg) !important;
+    background-color: var(--tridactyl-hintspan-active-bg) !important;
+    border-color: var(--tridactyl-hintspan-active-border-color) !important;
+}
+
 span.TridactylHintA {
     z-index: 2147483647 !important;
 }
