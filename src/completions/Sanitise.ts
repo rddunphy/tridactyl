@@ -5,9 +5,10 @@ class SanitiseCompletionOption
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(public name: string, doc: string, prefix: string) {
+    constructor(name: string, doc: string, prefix: string) {
         super()
         this.value = prefix + name
+        this.fuseKeys.push(name)
         this.html = html`<tr class="SanitiseCompletionOption option">
             <td class="name">${name}</td>
             <td class="doc">${doc}</td>
@@ -43,7 +44,6 @@ export class SanitiseCompletionSource extends Completions.CompletionSourceFuse {
     async filter(exstr: string) {
         this.lastExstr = exstr
         const [prefix] = this.splitOnPrefix(exstr)
-
         // Hide self and stop if prefixes don't match
         if (prefix) {
             // Show self if prefix and currently hidden
@@ -54,20 +54,20 @@ export class SanitiseCompletionSource extends Completions.CompletionSourceFuse {
             this.state = "hidden"
             return
         }
-
         return this.updateOptions(exstr)
     }
 
     private async updateOptions(exstr = "") {
         let [_ex, query] = this.splitOnPrefix(exstr)
-        const idx = query.lastIndexOf(" ")
+        const idx = query?.lastIndexOf(" ") ?? -1
         let prefix = ""
         if (idx > -1) {
             prefix = query.substring(0, idx + 1)
             query = query.substring(idx + 1)
         }
-        const filteredOptions = this.optionDict.filter(o =>
-            o["name"].startsWith(query),
+        const prefix_tokens = prefix.split(" ")
+        const filteredOptions = this.optionDict.filter(
+            o => !prefix_tokens.includes(o["name"]),
         )
         this.options = await Promise.all(
             filteredOptions.map(async param => {
@@ -80,6 +80,23 @@ export class SanitiseCompletionSource extends Completions.CompletionSourceFuse {
                 return o
             }),
         )
-        return this.updateDisplay()
+        return this.updateChain(query)
+    }
+
+    private updateChain(query = "", options = this.options) {
+        if (options === undefined) {
+            this.state = "hidden"
+            return
+        }
+
+        // Filter by query if query is not empty
+        if (query) {
+            this.setStateFromScore(this.scoredOptions(query))
+            // Else show all options
+        } else {
+            options.forEach(option => (option.state = "normal"))
+        }
+
+        this.updateDisplay()
     }
 }
