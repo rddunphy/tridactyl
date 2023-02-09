@@ -20,9 +20,15 @@ export class SanitiseCompletionSource extends Completions.CompletionSourceFuse {
     public options: SanitiseCompletionOption[]
 
     private optionDict = [
-        { name: "all", doc: "Deletes everything, including any saved usernames / passwords(!)" },
+        {
+            name: "all",
+            doc: "Deletes everything, including any saved usernames / passwords(!)",
+        },
         { name: "cache", doc: "The browser's cache." },
-        { name: "commandline", doc: "Tridactyl's in-memory commandline history." },
+        {
+            name: "commandline",
+            doc: "Tridactyl's in-memory commandline history.",
+        },
         { name: "cookies", doc: "Cookies acquired while browsing." },
         { name: "downloads", doc: "The user's download history." },
         { name: "formData", doc: "Saved form data, for autocomplete." },
@@ -30,8 +36,14 @@ export class SanitiseCompletionSource extends Completions.CompletionSourceFuse {
         { name: "localStorage", doc: "Local storage data." },
         { name: "passwords", doc: "Saved passwords, for autocomplete." },
         { name: "serviceWorkers", doc: "Data cached by service workers." },
-        { name: "tridactyllocal", doc: "Tridactyl storage local to this machine." },
-        { name: "tridactylsync", doc: "Tridactyl storage associated with your Firefox Account (i.e., all user configuration, by default)." },
+        {
+            name: "tridactyllocal",
+            doc: "Tridactyl storage local to this machine.",
+        },
+        {
+            name: "tridactylsync",
+            doc: "Tridactyl storage associated with your Firefox Account (i.e., all user configuration, by default).",
+        },
     ]
 
     constructor(private _parent) {
@@ -55,6 +67,23 @@ export class SanitiseCompletionSource extends Completions.CompletionSourceFuse {
             return
         }
         return this.updateOptions(exstr)
+    }
+
+    updateChain(query = "", options = this.options) {
+        if (options === undefined) {
+            this.state = "hidden"
+            return
+        }
+
+        // Filter by query if query is not empty
+        if (query) {
+            this.setStateFromScore(this.scoredOptions(query))
+            // Else show all options
+        } else {
+            options.forEach(option => (option.state = "normal"))
+        }
+
+        this.updateDisplay()
     }
 
     private async updateOptions(exstr = "") {
@@ -81,22 +110,5 @@ export class SanitiseCompletionSource extends Completions.CompletionSourceFuse {
             }),
         )
         return this.updateChain(query)
-    }
-
-    private updateChain(query = "", options = this.options) {
-        if (options === undefined) {
-            this.state = "hidden"
-            return
-        }
-
-        // Filter by query if query is not empty
-        if (query) {
-            this.setStateFromScore(this.scoredOptions(query))
-            // Else show all options
-        } else {
-            options.forEach(option => (option.state = "normal"))
-        }
-
-        this.updateDisplay()
     }
 }
