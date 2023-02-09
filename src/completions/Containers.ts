@@ -6,23 +6,68 @@ class ContainersCompletionOption
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
-    constructor(container: browser.contextualIdentities.ContextualIdentity) {
+    constructor(
+        value: string,
+        name: string,
+        colour: string,
+        icon: string,
+        prefix: string,
+    ) {
         super()
-        this.value = container.name
-        this.fuseKeys.push(container.name)
+        this.value = prefix + value
+        this.fuseKeys.push(value)
+        const row_classes = [colour, icon, name]
+            .filter(v => v.length > 0)
+            .map(v => "container_" + v)
+            .join(" ")
+        const style =
+            value === colour
+                ? "color: var(--tridactyl-container-color-" + colour + ")"
+                : ""
         this.html = html`<tr
             class="ContainersCompletionOption option 
-            container_${container.color} container_${container.icon}
-            container_${container.name}"
+            ${row_classes}"
         >
-            <td class="container"></td>
-            <td class="name">${container.name}</td>
+            <td class="container" ${icon === "" ? "hidden" : ""}></td>
+            <td class="name" style="${style}">${value}</td>
         </tr>`
     }
 }
 
 export class ContainersCompletionSource extends Completions.CompletionSourceFuse {
     public options: ContainersCompletionOption[]
+    containerColours = [
+        "blue",
+        "turquoise",
+        "green",
+        "yellow",
+        "orange",
+        "red",
+        "pink",
+        "purple",
+    ]
+    containerIcons = [
+        "fingerprint",
+        "briefcase",
+        "dollar",
+        "cart",
+        "circle",
+        "gift",
+        "vacation",
+        "food",
+        "fruit",
+        "pet",
+        "tree",
+        "chill",
+    ]
+    excmdArgs = {
+        // Indices of argument types for different ex commands
+        recontain: { container: 0 },
+        containerclose: { container: 0 },
+        containerdelete: { container: 0 },
+        containerupdate: { container: 0, name: 1, colour: 2, icon: 3 },
+        containercreate: { name: 0, colour: 1, icon: 2 },
+    }
 
     constructor(private _parent) {
         super(
@@ -31,6 +76,7 @@ export class ContainersCompletionSource extends Completions.CompletionSourceFuse
                 "containerclose",
                 "containerdelete",
                 "containerupdate",
+                "containercreate",
             ],
             "ContainersCompletionSource",
             "Containers",
@@ -42,24 +88,123 @@ export class ContainersCompletionSource extends Completions.CompletionSourceFuse
 
     async filter(exstr: string) {
         this.lastExstr = exstr
+        const [prefix] = this.splitOnPrefix(exstr)
+        // Hide self and stop if prefixes don't match
+        if (prefix) {
+            // Show self if prefix and currently hidden
+            if (this.state === "hidden") {
+                this.state = "normal"
+            }
+        } else {
+            this.state = "hidden"
+            return
+        }
         return this.updateOptions(exstr)
     }
 
-    private async updateOptions(exstr = "") {
-        const [_ex, query] = this.splitOnPrefix(exstr)
-        if (query && query.split(" ").length > 1) {
-            this.options = []
-            return this.updateChain()
+    updateChain(query = "", options = this.options) {
+        if (options === undefined) {
+            this.state = "hidden"
+            return
         }
-        const containers = await Container.getAll()
 
-        this.options = await Promise.all(
-            containers.map(async container => {
-                const o = new ContainersCompletionOption(container)
-                o.state = "normal"
-                return o
-            }),
-        )
+        // Filter by query if query is not empty
+        if (query) {
+            this.setStateFromScore(this.scoredOptions(query))
+            // Else show all options
+        } else {
+            options.forEach(option => (option.state = "normal"))
+        }
+
+        this.updateDisplay()
+    }
+
+    private async updateOptions(exstr = "") {
+        let [excmd, query] = this.splitOnPrefix(exstr)
+        excmd = excmd?.trim()
+        const queryTokens = query ? query.split(" ") : []
+        let nargs = queryTokens.length
+        query = queryTokens[nargs - 1]
+        if (nargs > 0) {
+            nargs -= 1
+        }
+        let prefix = queryTokens.slice(0, nargs).join(" ")
+        if (prefix.length) {
+            prefix += " "
+        }
+        const argsObj = this.excmdArgs[excmd]
+
+        if (argsObj?.colour === nargs) {
+            // Container colour completions
+            this.updateSectionHeader("Container colours")
+            this.options = await Promise.all(
+                this.containerColours.map(async colour => {
+                    const o = new ContainersCompletionOption(
+                        colour,
+                        "",
+                        colour,
+                        "",
+                        prefix,
+                    )
+                    o.state = "normal"
+                    return o
+                }),
+            )
+            return this.updateChain(query)
+        }
+        if (argsObj?.icon === nargs) {
+            // Container icon completions
+            this.updateSectionHeader("Container icons")
+            const colour = queryTokens[argsObj.colour]
+            this.options = await Promise.all(
+                this.containerIcons.map(async icon => {
+                    const o = new ContainersCompletionOption(
+                        icon,
+                        "",
+                        colour,
+                        icon,
+                        prefix,
+                    )
+                    o.state = "normal"
+                    return o
+                }),
+            )
+            return this.updateChain(query)
+        }
+        if (argsObj?.container === nargs) {
+            // Existing container completions
+            this.updateSectionHeader("Containers")
+            const containers = await Container.getAll()
+            this.options = await Promise.all(
+                containers.map(async container => {
+                    const o = new ContainersCompletionOption(
+                        container.name,
+                        container.name,
+                        container.color,
+                        container.icon,
+                        prefix,
+                    )
+                    o.state = "normal"
+                    return o
+                }),
+            )
+            return this.updateChain(query)
+        }
+        // Otherwise, don't offer completions
+        if (argsObj?.name === nargs) {
+            this.updateSectionHeader("New container name")
+        } else {
+            this.updateSectionHeader("Containers")
+        }
+        this.options = []
         return this.updateChain()
+    }
+
+    private updateSectionHeader(newTitle: string) {
+        const headerNode = this.node.firstElementChild
+        const oldTitle = headerNode.innerHTML
+        if (newTitle !== oldTitle) {
+            headerNode.innerHTML = newTitle
+        }
     }
 }
