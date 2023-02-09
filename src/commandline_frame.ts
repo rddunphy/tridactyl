@@ -23,6 +23,7 @@ import { AproposCompletionSource } from "@src/completions/Apropos"
 import { BindingsCompletionSource } from "@src/completions/Bindings"
 import { BmarkCompletionSource } from "@src/completions/Bmark"
 import { CompositeCompletionSource } from "@src/completions/Composite"
+import { ContainersCompletionSource } from "@src/completions/Containers"
 import { ExcmdCompletionSource } from "@src/completions/Excmd"
 import { ExtensionsCompletionSource } from "@src/completions/Extensions"
 import { FileSystemCompletionSource } from "@src/completions/FileSystem"
@@ -124,6 +125,7 @@ export function enableCompletions() {
             ThemeCompletionSource,
             TabHistoryCompletionSource,
             CompositeCompletionSource,
+            ContainersCompletionSource,
             FileSystemCompletionSource,
             GotoCompletionSource,
             GuisetCompletionSource,
