@@ -1,4 +1,5 @@
 import * as Completions from "@src/completions"
+import { activeTabContainer } from "@src/lib/webext"
 import * as Container from "@src/lib/containers"
 
 class ContainersCompletionOption
@@ -16,56 +17,34 @@ class ContainersCompletionOption
         super()
         this.value = prefix + value
         this.fuseKeys.push(value)
-        const row_classes = [colour, icon, name]
+        const containerClasses = [colour, icon, name]
             .filter(v => v.length > 0)
             .map(v => "container_" + v)
             .join(" ")
-        const style =
-            value === colour
-                ? "color: var(--tridactyl-container-color-" + colour + ")"
-                : ""
         this.html = html`<tr
-            class="ContainersCompletionOption option 
-            ${row_classes}"
+            class="ContainersCompletionOption option
+            ${containerClasses}"
         >
-            <td class="container" ${icon === "" ? "hidden" : ""}></td>
-            <td class="name" style="${style}">${value}</td>
+            <td class="container" }></td>
+            <td class="name">${value}</td>
         </tr>`
     }
 }
 
 export class ContainersCompletionSource extends Completions.CompletionSourceFuse {
     public options: ContainersCompletionOption[]
-    containerColours = [
-        "blue",
-        "turquoise",
-        "green",
-        "yellow",
-        "orange",
-        "red",
-        "pink",
-        "purple",
-    ]
-    containerIcons = [
-        "fingerprint",
-        "briefcase",
-        "dollar",
-        "cart",
-        "circle",
-        "gift",
-        "vacation",
-        "food",
-        "fruit",
-        "pet",
-        "tree",
-        "chill",
-    ]
     excmdArgs = {
         // Indices of argument types for different ex commands
-        recontain: { container: 0 },
-        containerclose: { container: 0 },
-        containerdelete: { container: 0 },
-        containerupdate: { container: 0, name: 1, colour: 2, icon: 3 },
+        recontain: { container: 0, includeActive: false },
+        containerclose: { container: 0, includeActive: true },
+        containerdelete: { container: 0, includeActive: true },
+        containerupdate: {
+            container: 0,
+            name: 1,
+            colour: 2,
+            icon: 3,
+            includeActive: true,
+        },
         containercreate: { name: 0, colour: 1, icon: 2 },
     }
 
@@ -137,57 +116,73 @@ export class ContainersCompletionSource extends Completions.CompletionSourceFuse
         if (argsObj?.colour === nargs) {
             // Container colour completions
             this.updateSectionHeader("Container colours")
-            this.options = await Promise.all(
-                this.containerColours.map(async colour => {
-                    const o = new ContainersCompletionOption(
-                        colour,
-                        "",
-                        colour,
-                        "",
-                        prefix,
-                    )
-                    o.state = "normal"
-                    return o
-                }),
-            )
+            this.options = Container.ContainerColor.map(colour => {
+                const o = new ContainersCompletionOption(
+                    colour,
+                    "",
+                    colour,
+                    "circle",
+                    prefix,
+                )
+                o.state = "normal"
+                return o
+            })
             return this.updateChain(query)
         }
         if (argsObj?.icon === nargs) {
             // Container icon completions
             this.updateSectionHeader("Container icons")
             const colour = queryTokens[argsObj.colour]
-            this.options = await Promise.all(
-                this.containerIcons.map(async icon => {
-                    const o = new ContainersCompletionOption(
-                        icon,
-                        "",
-                        colour,
-                        icon,
-                        prefix,
-                    )
-                    o.state = "normal"
-                    return o
-                }),
-            )
+            this.options = Container.ContainerIcon.map(icon => {
+                const o = new ContainersCompletionOption(
+                    icon,
+                    "",
+                    colour,
+                    icon,
+                    prefix,
+                )
+                o.state = "normal"
+                return o
+            })
             return this.updateChain(query)
         }
         if (argsObj?.container === nargs) {
             // Existing container completions
             this.updateSectionHeader("Containers")
-            const containers = await Container.getAll()
-            this.options = await Promise.all(
-                containers.map(async container => {
-                    const o = new ContainersCompletionOption(
-                        container.name,
-                        container.name,
-                        container.color,
-                        container.icon,
+            let containers = await Container.getAll()
+            let activeContainer
+            try {
+                activeContainer = (await activeTabContainer()).name
+            } catch {
+                activeContainer = "default"
+            }
+            if (!argsObj.includeActive) {
+                containers = containers.filter(
+                    container => container.name !== activeContainer,
+                )
+            }
+            this.options = containers.map(container => {
+                const o = new ContainersCompletionOption(
+                    container.name,
+                    container.name,
+                    container.color,
+                    container.icon,
+                    prefix,
+                )
+                o.state = "normal"
+                return o
+            })
+            if (!argsObj.includeActive && activeContainer !== "default") {
+                this.options.unshift(
+                    new ContainersCompletionOption(
+                        "default",
+                        "default",
+                        "",
+                        "",
                         prefix,
-                    )
-                    o.state = "normal"
-                    return o
-                }),
-            )
+                    ),
+                )
+            }
             return this.updateChain(query)
         }
         // Otherwise, don't offer completions

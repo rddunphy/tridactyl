@@ -4,7 +4,7 @@ import * as Logging from "@src/lib/logging"
 const logger = new Logging.Logger("containers")
 
 // As per Mozilla specification: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
-const ContainerColor = [
+export const ContainerColor = [
     "blue",
     "turquoise",
     "green",
@@ -16,7 +16,7 @@ const ContainerColor = [
 ]
 
 // As per Mozilla specification: https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/contextualIdentities/ContextualIdentity
-const ContainerIcon = [
+export const ContainerIcon = [
     "fingerprint",
     "briefcase",
     "dollar",
@@ -157,7 +157,7 @@ export function fromString(name: string, color: string, icon: string, id = "") {
  *  @returns An array representation of all containers.
  */
 export async function getAll(): Promise<any[]> {
-    return browser.contextualIdentities.query({})
+    return browserBg.contextualIdentities.query({})
 }
 
 /** Fetches the cookieStoreId of a given container

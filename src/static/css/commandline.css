@@ -277,9 +277,13 @@ a.url:hover {
     width: auto;
 }
 
-.HelpCompletionOption td.name,
-.SanitiseCompletionOption td.name {
+#completions .HelpCompletionOption td.name,
+#completions .SanitiseCompletionOption td.name {
     width: 25%;
+}
+
+#completions .ContainersCompletionOption td.name {
+    width: 100%;
 }
 
 #completions .SessionCompletionOption td.type {
