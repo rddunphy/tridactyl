@@ -286,7 +286,7 @@ a.url:hover {
     width: 100%;
 }
 
-#completions .SessionCompletionOption td.type {
+#completions .SessionCompletionOption td.prefix {
     width: 1ch !important;
     padding: 0px 3pt;
 }

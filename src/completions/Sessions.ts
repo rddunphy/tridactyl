@@ -27,16 +27,20 @@ function getTabInfo(session) {
     let extraInfo
     if (session.tab) {
         tab = session.tab
-        extraInfo = tab.url
+        extraInfo = html`<a class="url" target="_blank" href="${tab.url}"
+            >${tab.url}</a
+        >`
     } else {
         tab = session.window.tabs.sort(
             (a, b) => b.lastAccessed - a.lastAccessed,
         )[0]
         const tabCount = session.window.tabs.length
         if (tabCount < 2) {
-            extraInfo = tab.url
+            extraInfo = html`<a class="url" target="_blank" href="${tab.url}"
+                >${tab.url}</a
+            >`
         } else {
-            extraInfo = `${tabCount - 1} more tab${tabCount > 2 ? "s" : ""}.`
+            extraInfo = html`${tabCount - 1} more tab${tabCount > 2 ? "s" : ""}`
         }
     }
     return [tab, extraInfo]
@@ -52,16 +56,18 @@ class SessionCompletionOption
         this.value = (session.tab || session.window).sessionId
         const [howLong, qualifier] = computeDate(session)
         const [tab, extraInfo] = getTabInfo(session)
-        this.fuseKeys.push(tab.title)
+        const pre = session.tab ? "T" : "W"
+        this.fuseKeys.push(tab.title, tab.url, pre)
         this.html = html`<tr class="SessionCompletionOption option">
-            <td class="type">${session.tab ? "T" : "W"}</td>
+            <td class="prefix">${pre}</td>
             <td class="time">${howLong}${qualifier}</td>
             <td class="icon">
                 <img src="${tab.favIconUrl || Completions.DEFAULT_FAVICON}" />
             </td>
             <td class="title">${tab.title}</td>
-            <td class="extraInfo">${extraInfo}</td>
+            <td class="content"></td>
         </tr>`
+        this.html.lastElementChild.appendChild(extraInfo)
     }
 }
 
