@@ -17,10 +17,14 @@ class HistoryCompletionOption
 
         let preplain = page.bmark ? "B" : ""
         preplain += page.search ? "S" : ""
-        let pre = preplain
+        let pre = ""
         if (config.get("completions", "Tab", "statusstylepretty") === "true") {
-            pre = page.bmark ? "\u2B50" : ""
-            pre += page.search ? "\u{1F50D}" : ""
+            if (page.bmark) pre += config.get("statusstyleprettyicons", "bmark")
+            if (page.search)
+                pre += config.get("statusstyleprettyicons", "search")
+            this.fuseKeys.push(pre)
+        } else {
+            pre = preplain
         }
 
         // Push properties we want to fuzmatch on
@@ -28,14 +32,14 @@ class HistoryCompletionOption
 
         // Create HTMLElement
         this.html = html`<tr class="HistoryCompletionOption option">
-            <td class="prefix">${pre}</td>
-            <td class="prefixplain" hidden>${preplain}</td>
+            <td class="prefix"></td>
             <td class="title">${page.title}</td>
             <td class="content">
                 ${page.search ? "Search " : ""}
                 <a class="url" target="_blank" href=${page.url}>${page.url}</a>
             </td>
         </tr>`
+        this.html.firstElementChild.innerHTML = pre
     }
 }
 

@@ -1148,6 +1148,22 @@ export class default_config {
     gotoselector = "h1, h2, h3, h4, h5, h6"
 
     /**
+     * Characters to use in completion prefixes if `completions.Tab.statusstylepretty` is "true". These can be unicode characters, plain text, or html snippets.
+     */
+    statusstyleprettyicons = {
+        active: "%",
+        alternate: "#",
+        tab: "",
+        window: "\u{1FA9F}",
+        pinned: "\u{1F4CC}",
+        audible: "\u{1F50A}",
+        muted: "\u{1F507}",
+        discarded: "\u{2296}",
+        search: "\u{1F50D}",
+        bmark: "\u{2B50}",
+    }
+
+    /**
      * General completions options - NB: options are set according to our internal completion source name - see - `src/completions/[name].ts` in the Tridactyl source.
      */
     completions = {

@@ -56,10 +56,19 @@ class SessionCompletionOption
         this.value = (session.tab || session.window).sessionId
         const [howLong, qualifier] = computeDate(session)
         const [tab, extraInfo] = getTabInfo(session)
-        const pre = session.tab ? "T" : "W"
-        this.fuseKeys.push(tab.title, tab.url, pre)
+        const preplain = session.tab ? "T" : "W"
+        let pre
+        if (config.get("completions", "Tab", "statusstylepretty") === "true") {
+            pre = session.tab
+                ? config.get("statusstyleprettyicons", "tab")
+                : config.get("statusstyleprettyicons", "window")
+            this.fuseKeys.push(pre)
+        } else {
+            pre = preplain
+        }
+        this.fuseKeys.push(preplain, tab.title, tab.url)
         this.html = html`<tr class="SessionCompletionOption option">
-            <td class="prefix">${pre}</td>
+            <td class="prefix"></td>
             <td class="time">${howLong}${qualifier}</td>
             <td class="icon">
                 <img src="${tab.favIconUrl || Completions.DEFAULT_FAVICON}" />
@@ -67,6 +76,7 @@ class SessionCompletionOption
             <td class="title">${tab.title}</td>
             <td class="content"></td>
         </tr>`
+        this.html.firstElementChild.innerHTML = pre
         this.html.lastElementChild.appendChild(extraInfo)
     }
 }

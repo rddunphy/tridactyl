@@ -23,38 +23,31 @@ class TabGroupCompletionOption
         super()
         this.value = group
         let preplain = ""
-        if (current) {
-            preplain += "%"
-        }
-        if (alternate) {
-            preplain += "#"
-        }
-        let pre = preplain
-        if (audible) {
-            preplain += "A"
-        }
+        if (current) preplain += "%"
+        if (alternate) preplain += "#"
+        if (audible) preplain += "A"
+        let pre = ""
         if (config.get("completions", "Tab", "statusstylepretty") === "true") {
-            if (audible) {
-                pre += "\uD83D\uDD0A"
-            }
+            if (current) pre += config.get("statusstyleprettyicons", "active")
+            if (alternate)
+                pre += config.get("statusstyleprettyicons", "alternate")
+            if (audible) pre += config.get("statusstyleprettyicons", "audible")
+            this.fuseKeys.push(pre)
         } else {
             pre = preplain
         }
 
-        this.fuseKeys.push(group)
-        this.fuseKeys.push(pre)
-        this.fuseKeys.push(preplain)
-        this.fuseKeys.push(urls)
+        this.fuseKeys.push(preplain, group, urls)
 
         this.html = html`<tr class="TabGroupCompletionOption option">
-            <td class="prefix">${pre}</td>
-            <td class="prefixplain" hidden>${preplain}</td>
+            <td class="prefix"></td>
             <td class="title">${group}</td>
             <td class="tabcount">
                 ${tabCount} tab${tabCount !== 1 ? "s" : ""}
             </td>
             <td class="content"></td>
         </tr>`
+        this.html.firstElementChild.innerHTML = pre
         const urlMarkup = urls.map(
             u => `<a class="url" target="_blank" href="${u}">${u}</a>`,
         )

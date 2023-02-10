@@ -24,7 +24,6 @@ class TabAllCompletionOption
         super()
         const valueStr = `${winindex}.${tab.index + 1}`
         this.value = valueStr
-        this.fuseKeys.push(this.value, tab.title, tab.url)
         this.tab = tab
 
         // pre contains max four uppercase characters for tab status.
@@ -37,30 +36,34 @@ class TabAllCompletionOption
             preplain += "#"
             this.value = "#"
         }
-        let pre = preplain
         if (tab.pinned) preplain += "P"
         if (tab.audible) preplain += "A"
         if (tab.mutedInfo.muted) preplain += "M"
         if (tab.discarded) preplain += "D"
 
+        let pre = ""
         if (config.get("completions", "Tab", "statusstylepretty") === "true") {
-            if (tab.pinned) pre += "\uD83D\uDCCC"
-            if (tab.audible) pre += "\uD83D\uDD0A"
-            if (tab.mutedInfo.muted) pre += "\uD83D\uDD07"
-            if (tab.discarded) pre += "\u2296"
+            if (tab.active)
+                pre += config.get("statusstyleprettyicons", "active")
+            if (isAlternative)
+                pre += config.get("statusstyleprettyicons", "alternate")
+            if (tab.pinned)
+                pre += config.get("statusstyleprettyicons", "pinned")
+            if (tab.audible)
+                pre += config.get("statusstyleprettyicons", "audible")
+            if (tab.mutedInfo.muted)
+                pre += config.get("statusstyleprettyicons", "muted")
+            if (tab.discarded)
+                pre += config.get("statusstyleprettyicons", "discarded")
+            this.fuseKeys.push(pre)
         } else {
             pre = preplain
         }
 
         tgroupname = tgroupname === undefined ? "" : tgroupname
 
-        // Push prefix before padding so we don't match on whitespace
-        this.fuseKeys.push(pre)
-        this.fuseKeys.push(preplain)
-        this.fuseKeys.push(tgroupname)
-
         // Push properties we want to fuzmatch on
-        this.fuseKeys.push(String(tab.index + 1), tab.title, tab.url)
+        this.fuseKeys.push(preplain, tgroupname, this.value, tab.title, tab.url)
 
         // Create HTMLElement
         const favIconUrl = tab.favIconUrl
@@ -71,8 +74,7 @@ class TabAllCompletionOption
                 ? "incognito"
                 : ""}"
         >
-            <td class="prefix">${pre}</td>
-            <td class="prefixplain" hidden>${preplain}</td>
+            <td class="prefix"></td>
             <td class="privatewindow"></td>
             <td class="container"></td>
             <td class="icon"><img src="${favIconUrl}" /></td>
@@ -82,6 +84,7 @@ class TabAllCompletionOption
             </td>
             <td class="tgroup">${tgroupname}</td>
         </tr>`
+        this.html.firstElementChild.innerHTML = pre
     }
 }
 
