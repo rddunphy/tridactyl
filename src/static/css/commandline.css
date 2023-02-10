@@ -119,6 +119,10 @@ input:focus {
     width: 1em;
 }
 
+#completions img[src="#zXssPreventedz"] {
+    display: none;
+}
+
 #completions .sectionHeader {
     background: linear-gradient(
         var(--tridactyl-header-first-bg),
