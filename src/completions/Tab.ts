@@ -58,6 +58,9 @@ class BufferCompletionOption
 
         // Push properties we want to fuzmatch on
         this.fuseKeys.push(preplain, String(tab.index + 1), tab.title, tab.url)
+        if (container.name !== "default") {
+            this.fuseKeys.push(container.name)
+        }
 
         // Create HTMLElement
         const favIconUrl = tab.favIconUrl
