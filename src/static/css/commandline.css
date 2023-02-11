@@ -141,6 +141,10 @@ input:focus {
     line-height: var(--option-height);
 }
 
+#completions span.treeOutline {
+    font-family: var(--tridactyl-font-family-mono);
+}
+
 .url {
     text-decoration: var(--tridactyl-url-text-decoration);
 }

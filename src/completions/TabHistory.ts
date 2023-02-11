@@ -17,8 +17,9 @@ class TabHistoryCompletionOption
 
         this.html = html`<tr class="TabHistoryCompletionOption option">
             <td class="prefix">${index}</td>
-            <td class="container"></td>
-            <td class="title">${tab.prefix}${tab.title}</td>
+            <td class="title">
+                <span class="treeOutline">${tab.prefix}</span>${tab.title}
+            </td>
             <td class="content">
                 <a class="url" href="${tab.href}">${tab.href}</a>
             </td>
@@ -107,7 +108,7 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
             for (let i = 0; i <= parentCount; ++i) {
                 if (i === parentCount - 1) {
                     string += "┌─"
-                } else if ( i < parentCount ) {
+                } else if (i < parentCount) {
                     string += "  " // NB: non-breaking space
                 } else {
                     string += "· "
@@ -132,17 +133,19 @@ export class TabHistoryCompletionSource extends Completions.CompletionSourceFuse
         this.addFormatTimeSpan(history["list"])
 
         this.options = this.scoreOptions(
-            history["list"].map(
-                item =>
-                    new TabHistoryCompletionOption(item.href, {
-                        href: item.href,
-                        id: item.index,
-                        title: item.title,
-                        prefix: item.prefix,
-                        index: item.level,
-                        formatTimeSpan: item.formatTimeSpan,
-                    }),
-            ),
+            history["list"]
+                .sort((a, b) => b.time - a.time)
+                .map(
+                    item =>
+                        new TabHistoryCompletionOption(item.href, {
+                            href: item.href,
+                            id: item.index,
+                            title: item.title,
+                            prefix: item.prefix,
+                            index: item.level,
+                            formatTimeSpan: item.formatTimeSpan,
+                        }),
+                ),
         )
         this.updateChain()
     }

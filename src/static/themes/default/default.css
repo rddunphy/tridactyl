@@ -2,6 +2,7 @@
     /* Generic */
     --tridactyl-font-family: monospace;
     --tridactyl-font-family-sans: sans-serif;
+    --tridactyl-font-family-mono: var(--tridactyl-font-family);
     --tridactyl-font-size: 12pt;
     --tridactyl-small-font-size: 12px;
     --tridactyl-bg: white;
