@@ -1778,7 +1778,7 @@ export function getURL(url: string, target: string[]) {
                 // Keep only the ones that have a match
                 .filter(
                     k =>
-                        url.match(k) &&
+                        (url.match(k) || url === k) &&
                         getDeepProperty(conf.subconfigs[k], target) !==
                             undefined,
                 )

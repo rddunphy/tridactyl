@@ -2,7 +2,8 @@ import * as Completions from "@src/completions"
 import * as config from "@src/lib/config"
 import * as Binding from "@src/lib/binding"
 
-class BindingsCompletionOption extends Completions.CompletionOptionHTML
+class BindingsCompletionOption
+    extends Completions.CompletionOptionHTML
     implements Completions.CompletionOptionFuse {
     public fuseKeys = []
 
@@ -11,10 +12,17 @@ class BindingsCompletionOption extends Completions.CompletionOptionHTML
         binding: { name: string; value: string; mode: string },
     ) {
         super()
+        let modeStr = binding.mode
+        if (binding.mode === "mode" || binding.mode === "url") {
+            this.fuseKeys.push(binding.name)
+            modeStr = ""
+        } else {
+            this.fuseKeys.push(binding.name, binding.value)
+        }
         this.html = html`<tr class="BindingsCompletionOption option">
             <td class="name">${binding.name}</td>
             <td class="content">${binding.value}</td>
-            <td class="type">${binding.mode}</td>
+            <td class="type">${modeStr}</td>
         </tr>`
     }
 }
@@ -61,41 +69,49 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
 
             if (args.length === 0) {
                 const patterns = config.get("subconfigs")
+                const modeMaps = Binding.modeMaps
                 this.options = Object.keys(patterns)
-                    .filter(pattern => pattern.startsWith(urlPattern))
                     .sort()
-                    .map(
-                        pattern =>
-                            new BindingsCompletionOption(pattern, {
-                                name: pattern,
-                                value: "",
-                                mode: "URL Pattern",
-                            }),
-                    )
+                    .map(pattern => {
+                        const keys = Object.keys(patterns[pattern]).filter(k =>
+                            modeMaps.includes(k),
+                        )
+                        const summary = keys
+                            .map(k => {
+                                const maps = config.getURL(pattern, [k])
+                                const n = Object.keys(maps).length
+                                return `${n} ${k}`
+                            })
+                            .join(", ")
+                        return new BindingsCompletionOption(pattern, {
+                            name: pattern,
+                            value: summary,
+                            mode: "url",
+                        })
+                    })
 
-                return this.updateChain()
+                return this.updateChain(query)
             }
+            console.log({ options, urlPattern, args })
+            query = args.join(" ")
         }
 
         // completion maps mode
         if (args.length === 1 && args[0].startsWith("--m")) {
             const margs = args[0].split("=")
             if ("--mode".includes(margs[0])) {
-                const modeStr = margs.length > 1 ? margs[1] : ""
-                this.options = Binding.modes
-                    .filter(k => k.startsWith(modeStr))
-                    .map(
-                        name =>
-                            new BindingsCompletionOption(
-                                options + "--mode=" + name,
-                                {
-                                    name,
-                                    value: "",
-                                    mode: "Mode Name",
-                                },
-                            ),
-                    )
-                return this.updateChain()
+                this.options = Binding.modes.map(
+                    name =>
+                        new BindingsCompletionOption(
+                            options + "--mode=" + name,
+                            {
+                                name: "--mode=" + name,
+                                value: name,
+                                mode: "mode",
+                            },
+                        ),
+                )
+                return this.updateChain(query)
             }
         }
 
@@ -113,42 +129,47 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
 
         if (!configName) {
             this.options = []
-            return this.updateChain()
+            return this.updateChain(query)
         }
 
+        console.log(configName)
         const bindings = urlPattern
             ? config.getURL(urlPattern, [configName])
             : config.get(configName as any)
+        console.log(bindings)
 
         if (bindings === undefined) {
             this.options = []
-            return this.updateChain()
+            return this.updateChain(query)
         }
 
         query = args.join(" ").toLowerCase()
         this.options = Object.keys(bindings)
-            .filter(x => x.toLowerCase().startsWith(query))
             .sort()
             .map(
                 keystr =>
-                    new BindingsCompletionOption(
-                        options + keystr,
-                        {
-                            name: keystr,
-                            value: JSON.stringify(bindings[keystr]),
-                            mode: `${configName} (${modeName})`,
-                        },
-                    ),
+                    new BindingsCompletionOption(options + keystr, {
+                        name: keystr,
+                        value: JSON.stringify(bindings[keystr]),
+                        mode: `${configName} (${modeName})`,
+                    }),
             )
 
-        return this.updateChain()
+        return this.updateChain(query)
     }
 
-    updateChain() {
-        // Options are pre-trimmed to the right length.
-        this.options.forEach(option => (option.state = "normal"))
-
-        // Call concrete class
-        return this.updateDisplay()
+    public updateChain(query = "", options = this.options) {
+        if (options === undefined) {
+            this.state = "hidden"
+            return
+        }
+        // Filter by query if query is not empty
+        if (query) {
+            this.setStateFromScore(this.scoredOptions(query))
+            // Else show all options
+        } else {
+            options.forEach(option => (option.state = "normal"))
+        }
+        this.updateDisplay()
     }
 }
