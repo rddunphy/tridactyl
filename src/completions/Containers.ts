@@ -25,7 +25,7 @@ class ContainersCompletionOption
             class="ContainersCompletionOption option
             ${containerClasses}"
         >
-            <td class="container" }></td>
+            <td class="container" ${icon === "" ? "hidden" : ""}></td>
             <td class="name">${value}</td>
         </tr>`
     }
@@ -185,13 +185,27 @@ export class ContainersCompletionSource extends Completions.CompletionSourceFuse
             }
             return this.updateChain(query)
         }
-        // Otherwise, don't offer completions
         if (argsObj?.name === nargs) {
+            // If updating container, suggest current name as new name
             this.updateSectionHeader("New container name")
+            if (excmd === "containerupdate") {
+                this.options = [
+                    new ContainersCompletionOption(
+                        queryTokens[0],
+                        queryTokens[0],
+                        "",
+                        "",
+                        prefix,
+                    ),
+                ]
+            } else {
+                this.options = []
+            }
         } else {
+            // Otherwise, don't offer completions
             this.updateSectionHeader("Containers")
+            this.options = []
         }
-        this.options = []
         return this.updateChain()
     }
 
