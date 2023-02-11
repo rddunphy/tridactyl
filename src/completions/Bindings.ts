@@ -32,7 +32,15 @@ export class BindingsCompletionSource extends Completions.CompletionSourceFuse {
 
     constructor(private _parent) {
         super(
-            ["bind", "unbind", "bindurl", "unbindurl", "reset", "reseturl"],
+            [
+                "bind",
+                "unbind",
+                "bindurl",
+                "unbindurl",
+                "reset",
+                "reseturl",
+                "bindshow",
+            ],
             "BindingsCompletionSource",
             "Bindings",
         )
