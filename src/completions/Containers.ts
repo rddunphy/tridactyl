@@ -46,6 +46,7 @@ export class ContainersCompletionSource extends Completions.CompletionSourceFuse
             includeActive: true,
         },
         containercreate: { name: 0, colour: 1, icon: 2 },
+        "tabopen -c": { container: 0 },
     }
 
     constructor(private _parent) {
@@ -56,6 +57,7 @@ export class ContainersCompletionSource extends Completions.CompletionSourceFuse
                 "containerdelete",
                 "containerupdate",
                 "containercreate",
+                "tabopen -c",
             ],
             "ContainersCompletionSource",
             "Containers",
@@ -113,6 +115,10 @@ export class ContainersCompletionSource extends Completions.CompletionSourceFuse
         }
         const argsObj = this.excmdArgs[excmd]
 
+        if (excmd === "tabopen -c" && nargs > 0) {
+            this.state = "hidden"
+            return
+        }
         if (argsObj?.colour === nargs) {
             // Container colour completions
             this.updateSectionHeader("Container colours")

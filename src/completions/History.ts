@@ -81,6 +81,10 @@ export class HistoryCompletionSource extends Completions.CompletionSourceFuse {
         if (prefix === "tabopen ") {
             if (query.startsWith("-c ")) {
                 const args = query.split(" ")
+                if (args.length === 2) {
+                    this.state = "hidden"
+                    return
+                }
                 if (args.length > 2) {
                     options = args.slice(0, 2).join(" ")
                     headerPostfix.push("container: " + args[1])
