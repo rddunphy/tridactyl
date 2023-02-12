@@ -72,7 +72,6 @@ span.TridactylJSHint {
 
 .TridactylHintElemOverlay,
 .TridactylHintActiveOverlay {
-    position: relative !important;
     color: var(--tridactyl-hint-active-fg) !important !important;
 }
 

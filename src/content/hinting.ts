@@ -766,6 +766,9 @@ class Hint {
             if (highlightmode === "overlay") {
                 this.addTextNodeWrappers()
                 this.target.classList.add("TridactylHintElemOverlay")
+                if (getComputedStyle(this.target).position === "static") {
+                    this.target.style.position = "relative";
+                }
             } else if (highlightmode === "outline") {
                 this.target.classList.add("TridactylHintElemOutline")
             } else if (highlightmode === "background") {
